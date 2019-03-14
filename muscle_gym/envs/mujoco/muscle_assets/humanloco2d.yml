@@ -1,0 +1,128 @@
+# Note:Every angle (prefix is phi) is in degrees. All other values are in SI units
+
+HFL:
+  JOINT: #this is a list
+    - hip
+  MTU_PAR:
+    F_max: 2000
+    l_opt: 0.11
+    v_max: 12
+    l_slack: 0.10
+    r1: -0.08
+    phi1_ref: -20 #degrees
+    rho: 0.5
+    del_t: 0.005
+# -------------------------------------------------------------
+GLU:
+  JOINT: #this is a list
+    - hip
+  MTU_PAR:
+    F_max: 4000
+    l_opt: 0.11
+    v_max: 12
+    l_slack: 0.13
+    r1: 0.08
+    phi1_ref: -60 #this is in degrees!
+    rho: 0.5
+    del_t: 0.005
+# -------------------------------------------------------------
+HAM:
+  JOINT: #this is a list
+    - hip
+    - knee
+  MTU_PAR:
+    F_max: 2000
+    l_opt: 0.10
+    v_max: 12
+    l_slack: 0.31
+    r1: 0.08
+    phi1_ref: -30 #degrees
+    r2: -0.05
+    phi2_ref: 0 #degrees
+    rho: 0.5
+    del_t: 0.005
+# -------------------------------------------------------------
+RF:
+  JOINT: #this is a list
+    - hip
+    - knee
+  MTU_PAR:
+    F_max: 850
+    l_opt: 0.08
+    v_max: 12
+    l_slack: 0.35
+    r1: -0.08
+    phi1_ref: -10 #degrees
+    r2: -0.05
+    phi2_ref: -55 #degrees
+    rho: 0.5
+    del_t: 0.005
+# -------------------------------------------------------------
+VAS:
+  JOINT: #this is a list
+    - knee
+  MTU_PAR:
+    F_max: 5000
+    l_opt: 0.08
+    v_max: 12
+    l_slack: 0.23
+    r1: 0.05
+    phi1_ref: -60 #degrees
+    rho: 0.6
+    del_t: 0.010
+# -------------------------------------------------------------
+BFSH:
+  JOINT: #this is a list
+    - knee
+  MTU_PAR:
+    F_max: 350
+    l_opt: 0.12
+    v_max: 12
+    l_slack: 0.10
+    r1: -0.05
+    phi1_ref: -30 #degrees
+    rho: 0.6
+    del_t: 0.010
+# -------------------------------------------------------------
+GAS:
+  JOINT: #this is a list
+    - knee
+    - ankle
+  MTU_PAR:
+    F_max: 2000
+    l_opt: 0.05
+    v_max: 12
+    l_slack: 0.40
+    r1: -0.04
+    phi1_ref: -20 #degrees
+    r2: 0.04
+    phi2_ref: 0 #degrees
+    rho: 0.7
+    del_t: 0.010
+# -------------------------------------------------------------
+SOL:
+  JOINT: #this is a list
+    - ankle
+  MTU_PAR:
+    F_max: 4000
+    l_opt: 0.04
+    v_max: 6
+    l_slack: 0.26
+    r1: 0.04
+    phi1_ref: 0 #degrees
+    rho: 0.5
+    del_t: 0.020
+# -------------------------------------------------------------
+TA:
+  JOINT: #this is a list
+    - ankle
+  MTU_PAR:
+    F_max: 800
+    l_opt: 0.06
+    v_max: 12
+    l_slack: 0.24
+    r1: -0.03
+    phi1_ref: 20 #degrees
+    rho: 0.7
+    del_t: 0.020
+# -------------------------------------------------------------

@@ -1,0 +1,1 @@
+from muscle_gym.envs.mujoco.human_loco2d import HumanLoco2dEnv

@@ -1,4 +1,4 @@
-# Muscle Gym
+# Learn-To-Move
 Muscle models for Mujoco models in OpenAI Gym
 
 ## Requirements

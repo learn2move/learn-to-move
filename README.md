@@ -13,8 +13,8 @@ Muscle models for Mujoco models in OpenAI Gym
 
 
 ## Installation
-1. `git clone git@github.com:rawalkhirodkar/human_locomotion.git`  
-2. `cd human_locomotion && python setup.py install`  
+1. `git clone https://github.com/simNMS/learn-to-move`  
+2. `cd learn-to-move && python setup.py install`  
 
 ## Environment Names
 Name Format: Muscle'AgentName'-v'version_number'   

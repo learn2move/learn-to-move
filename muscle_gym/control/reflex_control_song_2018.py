@@ -71,6 +71,7 @@ class LocoCtrl(object):
         'SOL_1_FG',
         'TA_5_LG', 'TA_5_loff', 'TA_5_st_FG_SOL'
         ]
+    N_CTRL_PAR = len(cp_keys)
 
     m_map = dict(zip(m_keys, range(len(m_keys))))
     s_b_map = dict(zip(s_b_keys, range(len(s_b_keys))))
@@ -79,7 +80,7 @@ class LocoCtrl(object):
     bc_map = dict(zip(bc_keys, range(len(bc_keys))))
     cp_map = dict(zip(cp_keys, range(len(cp_keys))))
 
-    def __init__(self, TIMESTEP, control_mode=1, params = np.ones(len(cp_keys))):
+    def __init__(self, TIMESTEP, control_mode=1, params = np.ones(N_CTRL_PAR)):
         if self.DEBUG:
             print("===========================================")
             print("locomotion controller created in DEBUG mode")
@@ -166,7 +167,7 @@ class LocoCtrl(object):
         cp = {}
         cp_map = self.cp_map
 
-        cp['theta_tgt'] = params[cp_map['cv']] *10*np.pi/180
+        cp['theta_tgt'] = params[cp_map['theta_tgt']] *10*np.pi/180
         cp['c0'] = params[cp_map['c0']] *75*np.pi/180
         cp['cv'] = params[cp_map['cv']] *5*np.pi/180
         cp['alpha_delta'] = params[cp_map['alpha_delta']] *10*np.pi/180
@@ -227,14 +228,6 @@ class LocoCtrl(object):
         # updates self.stim
         self._spinal_control(sensor_data)
 
-        # count step
-        # !!!
-        # if (not self.in_contact[s_leg] and sensor_data[s_leg]['contact_ipsi']) \
-        #     and self.last_HS is not i_leg:
-        #     self.n_step += 1
-        #     self.last_HS = s_leg
-
-
         stim = np.array([self.stim['r_leg']['HFL'], self.stim['r_leg']['GLU'],
             self.stim['r_leg']['HAM'], self.stim['r_leg']['RF'],
             self.stim['r_leg']['VAS'], self.stim['r_leg']['BFSH'],
@@ -271,8 +264,8 @@ class LocoCtrl(object):
             sensor_data_leg['trunk_dx'] = obs['{}_trunk_dx'.format(s_l)]
             # sensor_data_leg['trunk_dy'] = obs['{}_trunk_dy'.format(s_l)]
             # sensor_data_leg['trunk_dz'] = obs['{}_trunk_dz'.format(s_l)]
-            sensor_data_leg['contact_ipsi'] = obs['{}_is_contact'.format(s_l)]
-            sensor_data_leg['contact_contra'] = obs['{}_is_contact'.format(s_l_contra)]
+            sensor_data_leg['contact_ipsi'] = obs['{}_contact'.format(s_l)]
+            sensor_data_leg['contact_contra'] = obs['{}_contact'.format(s_l_contra)]
             sensor_data_leg['load_ipsi'] = obs['{}_GRF_z'.format(s_l)]
             sensor_data_leg['load_contra'] = obs['{}_GRF_z'.format(s_l_contra)]
             sensor_data_leg['S_CHFL'] = self.stim[s_leg_contra]['HFL']

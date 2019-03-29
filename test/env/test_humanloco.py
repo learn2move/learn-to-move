@@ -80,15 +80,26 @@ while(True):
 	r_GRF_z.append(ctrl.sensor_data['r_leg']['load_ipsi'])
 	l_GRF_z.append(ctrl.sensor_data['l_leg']['load_ipsi'])
 	save_stim = np.concatenate((save_stim,np.array([stim])), axis=0)
+
+	if env.env.new_footstep:
+		input()
+	print(reward)
+	print(env.env.footstep['del_t'])
+	print(env.env.footstep['del_vx'])
+	print(env.env.footstep['effort'])
+
 	if ctrl.t > t_check:
 		# input()
 		t_check += .2
 
 	if ctrl.t > 5.5:
 		break
+		
+print(env.env.footstep['ACT2_total'])
 	# if done:
 	# 	break
 # ------------------------------------------------
+"""
 import matplotlib.pyplot as plt
 plt.subplot(len(spinal_control_phase['r_leg']), 2, 1)
 plt.plot(spinal_control_phase['r_leg']['ph_st'])
@@ -221,3 +232,4 @@ plt.subplot(2,2,4)
 plt.plot(l_GRF_z1)
 
 plt.show()
+"""

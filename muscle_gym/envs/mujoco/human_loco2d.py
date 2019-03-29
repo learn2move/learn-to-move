@@ -139,6 +139,11 @@ class HumanLoco2dEnv(mujoco_env.MujocoEnv, utils.EzPickle):
     # -----------------------------------------------------------------------------------------------------------------
     def _get_obs(self):
         obs = {} #switch to a dictionary
+
+        # ------------------------------------------------
+        # target velocity vector field (coordinate relative to body)
+        # obs['m_v_tgt'][0][0][0] = !!!
+
         # ------------------------------------------------
         # joint values
         qpos = self.sim.data.qpos
@@ -251,11 +256,15 @@ class HumanLoco2dEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         contact[self.R_LEG] = obs['r_contact']
         contact[self.L_LEG] = obs['l_contact']
 
+        self.new_footstep = 0
         for i_leg in [self.R_LEG, self.L_LEG]:
             if not self.in_contact[i_leg] and contact[i_leg] and self.last_HS is not i_leg:
+            #if not self.in_contact[i_leg] and contact[i_leg]:
                 self.n_step += 1
                 self.last_HS = i_leg
-                self.t_new_step = self.t
+                self.t_new_footstep = self.t
+                self.new_footstep = 1
+                # self.footstep['t'] = self.t_new_footstep !!!
 
         self.in_contact[self.R_LEG] = contact[self.R_LEG]
         self.in_contact[self.L_LEG] = contact[self.L_LEG]
@@ -266,39 +275,53 @@ class HumanLoco2dEnv(mujoco_env.MujocoEnv, utils.EzPickle):
 
         # alive bonus
         # should be large enough to search for 'success' solutions (alive to the end) first
-        reward = .1
+        reward_0 = .1
+
+        self.footstep['del_t'] += self.dt
+
+        vx = obs['d_rootx']*self.LENGTH0
+        #vy = obs['d_rooty']*self.LENGTH0
+        #vz = obs['d_rootz']*self.LENGTH0
+        #vx_tgt = obs['m_v_tgt'][0][0][0]*self.LENGTH0 !!!
+        vx_tgt = 1.5*self.LENGTH0
+        #vy_tgt = obs['m_v_tgt'][0][0][1]*self.LENGTH0
+        #vz_tgt = obs['m_v_tgt'][0][0][2]*self.LENGTH0
+        self.footstep['del_vx'] += (vx - vx_tgt)*self.dt
+        #self.footstep['del_vy'] += (vy - vy_tgt)*self.dt
+        #self.footstep['del_vz'] += (vz - vz_tgt)*self.dt
+
+        self.footstep['effort'] += (self.ACT2_total - self.footstep['ACT2_total'])*self.dt
+        self.footstep['ACT2_total'] = self.ACT2_total
 
         # footstep reward (when made a new step)
         reward_footstep = 0
-        if self.t_new_step != self.footstep['t']:
-            # update footstep data
-            self.footstep['del_t'] = self.t_new_step - self.footstep['t']
-            self.footstep['t'] = self.t_new_step
-            self.footstep['del_x'] = self.sim.data.qpos[0] - self.footstep['x']
-            self.footstep['x'] = self.sim.data.qpos[0]
-            self.footstep['FOT'] = (self.ACT2_total - self.footstep['ACT2_total'])/self.footstep['del_x']
-            self.footstep['ACT2_total'] = self.ACT2_total
-            self.footstep['v'] = self.footstep['del_x']/self.footstep['del_t']
-
+        if self.new_footstep:
             # footstep reward: so that solution does not avoid making footsteps
             # scaled by del_t, so that solution does get higher rewards by making unnecessary (small) steps
-            reward_footstep += self.reward_w['footstep']*self.footstep['del_t']
-
-            # panalize FOT (fatigue of transport)
-            # FOT = (muscle fatigure)/(traveled distance)
-            # comparable to the COT (cost of transport)
-            reward_footstep -= self.reward_w['FOT']*self.footstep['FOT']
+            reward_footstep_0 = self.reward_w['footstep']*self.footstep['del_t']
 
             # deviation from target velocity
             # the average velocity a step (instead of instantaneous velocity) is used
             # as velocity fluctuates within a step in normal human walking
-            reward_footstep -= self.reward_w['v_tgt']*np.abs(self.footstep['v']-self.v_tgt)*self.footstep['del_t']
+            #reward_footstep_v = -self.reward_w['v_tgt']*(self.footstep['del_vx']**2)
+            reward_footstep_v = -self.reward_w['v_tgt']*abs(self.footstep['del_vx'])
+
+            # panalize FOT (fatigue of transport)
+            # FOT = (muscle fatigure)/(traveled distance)
+            # comparable to the COT (cost of transport)
+            reward_footstep_e = -self.reward_w['effort']*self.footstep['effort']
+
+            self.footstep['del_t'] = 0
+            self.footstep['del_vx'] = 0
+            self.footstep['effort'] = 0
+
+            reward = reward_0 + reward_footstep_0 + reward_footstep_v + reward_footstep_e
+        else:
+            reward = reward_0
 
         # success bonus
         if done and self.failure_mode is 'success':
-            reward += 1000 + 10*reward_footstep
-        else:
-            reward += reward_footstep
+            reward += reward_footstep_0 + 100
 
         return reward
     # -----------------------------------------------------------------------------------------------------------------
@@ -323,7 +346,7 @@ class HumanLoco2dEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         if theta < -1.0:
             done = 1
             self.failure_mode = 'backward fall'
-        if self.t_new_step + 3.0 < self.t:
+        if self.t_new_footstep + 3.0 < self.t:
             done = 1
             self.failure_mode = 'no more step'
 
@@ -371,7 +394,7 @@ class HumanLoco2dEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         self.t = 0
         self.failure_mode = None
         self.n_step = 0
-        self.t_new_step = self.t
+        self.t_new_footstep = self.t
         self.in_contact = np.ones(2)
         self.in_contact[self.R_LEG] = 1
         self.in_contact[self.L_LEG] = 0
@@ -379,14 +402,16 @@ class HumanLoco2dEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         self.ACT2_total = 0
 
         self.footstep = {}
-        self.footstep['t'] = self.t_new_step
-        self.footstep['x'] = self.sim.data.qpos[0]
         self.footstep['ACT2_total'] = 0
 
+        self.footstep['del_t'] = 0
+        self.footstep['del_vx'] = 0
+        self.footstep['effort'] = 0
+
         self.reward_w = {}
-        self.reward_w['footstep'] = 20
-        self.reward_w['FOT'] = 1
-        self.reward_w['v_tgt'] = 10
+        self.reward_w['footstep'] = 10
+        self.reward_w['effort'] = 1
+        self.reward_w['v_tgt'] = 1
 
         return self._get_obs()
 

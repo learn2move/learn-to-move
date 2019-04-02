@@ -67,9 +67,9 @@ class VTgtField(object):
                     v_amp = d*v_amp0
 
                 #import pdb; pdb.set_trace()
-
-                self.vect[0,i_x,i_y] = v_amp*self.vect[0,i_x,i_y]/np.linalg.norm(self.vect[:,i_x,i_y])
-                self.vect[1,i_x,i_y] = v_amp*self.vect[1,i_x,i_y]/np.linalg.norm(self.vect[:,i_x,i_y])
+                amp_norm = np.linalg.norm(self.vect[:,i_x,i_y])
+                self.vect[0,i_x,i_y] = v_amp*self.vect[0,i_x,i_y]/amp_norm
+                self.vect[1,i_x,i_y] = v_amp*self.vect[1,i_x,i_y]/amp_norm
 
                 #import pdb; pdb.set_trace()
 

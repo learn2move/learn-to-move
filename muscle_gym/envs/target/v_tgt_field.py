@@ -11,7 +11,7 @@ from scipy import interpolate
 class VTgtField(object):
     res_map = 2
     res_get = 2
-    rng_get = np.array([[-10, 10], [-5, 5]])
+    rng_get = np.array([[-7.5, 7.5], [-5, 5]])
 
 # -----------------------------------------------------------------------------------------------------------------
     def __init__(self, rng_xy=np.array([[-10, 10], [-10, 10]])):
@@ -46,23 +46,23 @@ class VTgtField(object):
         th = pose[2]
 
         # create query map
-        get_rng_xy0 = (xy + self.rng_get.T).T
-        get_map0 = self._generate_grid(get_rng_xy0, self.res_get)
-        get_map_x = np.cos(th)*get_map0[0,:,:] - np.sin(th)*get_map0[1,:,:]
-        get_map_y = np.sin(th)*get_map0[0,:,:] + np.cos(th)*get_map0[1,:,:]
--> rotate around center
+        get_map0 = self._generate_grid(self.rng_get, self.res_get)
+        get_map_x = np.cos(th)*get_map0[0,:,:] - np.sin(th)*get_map0[1,:,:] + xy[0]
+        get_map_y = np.sin(th)*get_map0[0,:,:] + np.cos(th)*get_map0[1,:,:] + xy[1]
+
         # get vtgt
         vtgt_x0 = np.reshape(np.array([self.vtgt_interp_x(x, y) \
                             for x, y in zip(get_map_x.flatten(), get_map_y.flatten())]),
                             get_map_x.shape)
         vtgt_y0 = np.reshape(np.array([self.vtgt_interp_y(x, y) \
                             for x, y in zip(get_map_x.flatten(), get_map_y.flatten())]),
-                            get_map_x.shape)
+                            get_map_y.shape)
 
-        vtgt_x = np.cos(th)*vtgt_x0 - np.sin(th)*vtgt_y0
-        vtgt_y = np.sin(th)*vtgt_x0 + np.cos(th)*vtgt_y0
+        vtgt_x = np.cos(-th)*vtgt_x0 - np.sin(-th)*vtgt_y0
+        vtgt_y = np.sin(-th)*vtgt_x0 + np.cos(-th)*vtgt_y0
 
         # debug
+        """
         import matplotlib.pyplot as plt
         plt.figure(100)
         plt.axes([.025, .025, .95, .95])
@@ -76,8 +76,7 @@ class VTgtField(object):
         plt.axis('equal')
 
         plt.show()
-
-        import pdb; pdb.set_trace()
+        """
 
         return np.stack((vtgt_x, vtgt_y))
 

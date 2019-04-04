@@ -5,16 +5,17 @@
 
 from __future__ import division # '/' always means non-truncating division
 import numpy as np
-from scipy import interpolate
-
+from scipy import interpolate 
 
 class VTgtField(object):
-    res_map = 2
-    res_get = 2
-    rng_get = np.array([[-7.5, 7.5], [-5, 5]])
-
 # -----------------------------------------------------------------------------------------------------------------
-    def __init__(self, rng_xy=np.array([[-10, 10], [-10, 10]])):
+    def __init__(self, rng_xy=np.array([[-50, 10], [-50, 10]]),
+                res_map=2, res_get=2, rng_get=np.array([[-5, 5], [-5, 5]]) ):
+        # set parameters
+        self.res_map = res_map
+        self.res_get = res_get
+        self.rng_get = rng_get
+
         # map coordinate and vtgt
         self.create_map(rng_xy)
         self.vtgt = -1*self.map
@@ -39,6 +40,12 @@ class VTgtField(object):
 
         self.vtgt_interp_x = interpolate.interp2d(self.map[0,:,0], self.map[1,0,:], self.vtgt[0].T, kind='linear')
         self.vtgt_interp_y = interpolate.interp2d(self.map[0,:,0], self.map[1,0,:], self.vtgt[1].T, kind='linear')
+
+# -----------------------------------------------------------------------------------------------------------------
+    def get_vtgt(self, xy):
+        vtgt_x = self.vtgt_interp_x(xy[0], xy[1])
+        vtgt_y = self.vtgt_interp_y(xy[0], xy[1])
+        return np.array([vtgt_x, vtgt_y])
 
 # -----------------------------------------------------------------------------------------------------------------
     def get_vtgt_field_local(self, pose):
@@ -77,14 +84,7 @@ class VTgtField(object):
 
         plt.show()
         """
-
         return np.stack((vtgt_x, vtgt_y))
-
-# -----------------------------------------------------------------------------------------------------------------
-    def get_vtgt(self, xy):
-        vtgt_x = self.vtgt_interp_x(xy[0], xy[1])
-        vtgt_y = self.vtgt_interp_y(xy[0], xy[1])
-        return np.array([vtgt_x, vtgt_y])
 
 # -----------------------------------------------------------------------------------------------------------------
     def _generate_grid(self, rng_xy=np.array([[-10, 10], [-10, 10]]), res=2):
@@ -117,4 +117,63 @@ class VTgtField(object):
                 amp_norm = np.linalg.norm(self.vtgt[:,i_x,i_y])
                 self.vtgt[0,i_x,i_y] = v_amp*self.vtgt[0,i_x,i_y]/amp_norm
                 self.vtgt[1,i_x,i_y] = v_amp*self.vtgt[1,i_x,i_y]/amp_norm
-        
+
+
+class VTgtField_V01(object):
+# consecutive sinks forward (in the x-direction in the global frame)
+# -----------------------------------------------------------------------------------------------------------------
+    def __init__(self, rng_xy=np.array([[-20, 20], [-20, 20]]), pose_agent=np.array([0, 0, 0]), dt=.001,
+                v_amp_rng=np.array([.8, 1.8]), res_map=2, res_get=2, rng_get=np.array([[-5, 5], [-5, 5]]) ):
+        # set parameters
+        self.t_target = 0
+        self.dt = dt
+        self.rng_xy0 = rng_xy
+        self.rng_xy = rng_xy
+        self.res_map = res_map
+        self.res_get = res_get
+        self.rng_get = rng_get
+        self.v_amp_rng = v_amp_rng
+        self.pose_agent = pose_agent
+        self.p_sink = np.array([np.random.uniform(5, 7), 0])
+        self.r_target = .2
+
+        # map coordinate and vtgt
+        self.vtgt_obj = VTgtField(rng_xy)
+
+        # create first sink
+        self.create_vtgt_sink(self.v_amp_rng)
+
+# -----------------------------------------------------------------------------------------------------------------
+    def create_vtgt_sink(self, v_amp_rng):
+        d_sink = np.linalg.norm(self.p_sink - self.pose_agent[0:2])
+        v_phase0 = np.random.uniform(-np.pi, np.pi)
+        self.t_target0 = np.random.uniform(2, 4)
+        self.vtgt_obj.create_vtgt_sink(self.p_sink, d_sink, v_amp_rng, v_phase0=v_phase0)
+
+# -----------------------------------------------------------------------------------------------------------------
+    def update(self, pose):
+        self.pose_agent = pose
+
+        if np.linalg.norm(self.p_sink - self.pose_agent[0:2]) < self.r_target:
+            self.t_target += self.dt
+        else: # reset t_target if agent goes out of 
+            self.t_target = 0
+
+        flag_new_target = 0
+        if self.t_target > self.t_target0:
+            self.p_sink += np.array([np.random.uniform(5, 7), 0])
+            self.rng_xy = (self.pose_agent[0:2] + self.rng_xy0.T).T
+            self.vtgt_obj.create_map(self.rng_xy)
+            self.create_vtgt_sink(self.v_amp_rng)
+            self.t_target = 0
+            flag_new_target = 1
+
+        return self.vtgt_obj.get_vtgt_field_local(pose), flag_new_target
+
+# -----------------------------------------------------------------------------------------------------------------
+    def get_vtgt(self, xy):
+        return self.vtgt_obj.get_vtgt(xy)
+
+# -----------------------------------------------------------------------------------------------------------------
+    def get_vtgt_field_local(self, pose):
+        return self.vtgt_obj.get_vtgt_field_local(pose)

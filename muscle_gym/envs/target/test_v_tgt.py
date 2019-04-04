@@ -51,7 +51,7 @@ for x, y, th in zip(np.linspace(0, p_sink[0], 30), np.linspace(0, p_sink[1], 30)
 
     axes[0].plot(x, y, 'k.')
 
-    X, Y = np.mgrid[-15:16, -10:11]/2
+    X, Y = np.mgrid[-10:11, -10:11]/2
     U = vtgt_field_local[0]
     V = vtgt_field_local[1]
     R = np.sqrt(U**2 + V**2)

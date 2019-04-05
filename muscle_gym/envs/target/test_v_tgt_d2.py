@@ -1,4 +1,4 @@
-from v_tgt_field import VTgtField
+from v_tgt_field import VTgtField_V01
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
@@ -9,9 +9,10 @@ import matplotlib.pyplot as plt
 # --------------------------------------------------------------------
 #dt = .001
 dt = .5
+rng_xy = np.array([[-20, 20], [-20, 20]])
 pose_agent = np.array([0, 0, 0]) # [x, y]
 
-vtgt_v1 = VTgtField(version=1, pose_agent=pose_agent, dt=dt)
+vtgt_v1 = VTgtField(rng_xy=rng_xy, pose_agent=pose_agent, dt=dt)
 vtgt_obj = vtgt_v1.vtgt_obj
 
 
@@ -72,5 +73,7 @@ for t in np.arange(0, 30, dt):
     print('time: {} sec'.format(t))
 
 plt.show()
+
+import pdb; pdb.set_trace()
 
 # --------------------------------------------------------------------

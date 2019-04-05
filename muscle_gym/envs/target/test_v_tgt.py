@@ -1,4 +1,4 @@
-from v_tgt_field import VTgtField
+from v_tgt_field import VTgtSink
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 # --------------------------------------------------------------------
 rng_xy = np.array([[-20, 20], [-20, 20]])
 #rng_xy = np.array([[-10, 10], [-5, 5]])
-vtgt_obj = VTgtField(rng_xy)
+vtgt_obj = VTgtSink(rng_xy, res_map=np.array([1, 1]), res_get=np.array([1, 2]))
 
 p_sink = np.array([13.8,2.5]) # [x, y]
 d_sink = np.linalg.norm(p_sink)
@@ -34,7 +34,7 @@ print('vtgt: {}'.format(vtgt))
 
 vtgt_field_local = vtgt_obj.get_vtgt_field_local(pose)
 
-X, Y = np.mgrid[-15:16, -10:11]/2
+X, Y = vtgt_obj._generate_grid(vtgt_obj.rng_get, vtgt_obj.res_get)
 U = vtgt_field_local[0]
 V = vtgt_field_local[1]
 R = np.sqrt(U**2 + V**2)
